@@ -16,7 +16,7 @@ class Material(IntEnum):
     SAND = 1
     WATER = 2
 
-    # BONUS: TODO Later
+    # BONUS: Later
     # WALL = 3   (immovable — never update it)
     # FIRE = 4   (lives a few ticks, then becomes EMPTY)
     # SMOKE = 5  (rises instead of falling, then fades)
@@ -90,34 +90,39 @@ class SandSim:
     # ------------------------------------------------------------------ #
     def update(self) -> None:
 
+        #read from old and then write to new, no need to worry about order of updating individual cells
         old = self._types
         new = old.copy()
         H, W = self.height, self.width
 
+
+        #looping bottom to top
         for y in range(H - 1, -1, -1):
             xs = np.flatnonzero(old[y])
             if xs.size == 0:
                 continue
-            xs = _rng.permutation(xs)
+            xs = _rng.permutation(xs) #this line esures no bias, hence random like nature
 
 
             for x in xs:
-                x = int(x)
+                x = int(x) #standard int is easier to work with (apparaently)
                 m = old[y, x]
                 if m != Material.SAND and m != Material.WATER:
                     continue
 
-                if y + 1 < H:
-                    if new[y + 1, x] == Material.EMPTY:
+                if y + 1 < H: #ensure that we are not at bottom of grid
+                    if new[y + 1, x] == Material.EMPTY: #replace cell below if empty and continue
                         new[y + 1, x] = m
                         new[y, x] = Material.EMPTY
                         continue
 
-
-                    left = x>0 and new[y + 1, x - 1] == Material.EMPTY
+                    #check edge cases and for diagonal empty cells
+                    left = x>0 and new[y + 1, x - 1] == Material.EMPTY 
                     right = x + 1 < W and new[y + 1, x + 1] == Material.EMPTY
+
+
                     if left and right:
-                        dx = -1 if _rng.random() < 0.5 else 1
+                        dx = -1 if _rng.random() < 0.5 else 1 #random again since no bias in nature
                     elif left:
                         dx = -1
                     elif right:
@@ -134,7 +139,7 @@ class SandSim:
                     left = x>0 and new[y, x - 1] == Material.EMPTY
                     right = x + 1 < W and new[y, x + 1] == Material.EMPTY
                     if left and right:
-                        dx = -1 if _rng.random() < 0.5 else 1
+                        dx = -1 if _rng.random() < 0.5 else 1 #random since no bias in nature for water as well
                     elif left:
                         dx = -1
                     elif right:
